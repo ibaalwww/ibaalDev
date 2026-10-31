@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 @main
 struct AppleResellerConsoleApp: App {
@@ -27,24 +28,29 @@ struct AppleMockupView: View {
     @State private var tempBalance: String = ""
     @State private var tempAdminName: String = ""
 
-    let planNames = ["SALE Plan 3 Month", "SALE Plan 5 Month", "SALE Plan 12 Month"]
+    let planNames = ["Plan 3 Months", "Plan 5 Months", "Plan 12 Months"]
     let planPrices = ["1.46", "2.20", "4.50"]
 
     var body: some View {
         NavigationView {
             ZStack {
-                Color(.systemGroupedBackground).ignoresSafeArea()
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        hideKeyboard()
+                    }
                 
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 18) {
                         
-                        // Header Saldo & Admin (Bisa di-tap untuk edit)
+                        // Header Saldo & Admin (Tap untuk edit saldo & nama)
                         Button(action: {
+                            hideKeyboard()
                             tempBalance = balanceUSD
                             tempAdminName = adminName
                             showSettingsModal = true
                         }) {
-                            HStack(spacing: 15) {
+                            HStack(spacing: 14) {
                                 ZStack {
                                     Circle()
                                         .fill(
@@ -54,9 +60,9 @@ struct AppleMockupView: View {
                                                 endPoint: .bottomTrailing
                                             )
                                         )
-                                        .frame(width: 55, height: 55)
+                                        .frame(width: 50, height: 50)
                                     Image(systemName: "person.fill.badge.shield.checkmark")
-                                        .font(.system(size: 22))
+                                        .font(.system(size: 20))
                                         .foregroundColor(.white)
                                 }
                                 
@@ -76,7 +82,7 @@ struct AppleMockupView: View {
                                 
                                 Image(systemName: "gearshape.fill")
                                     .foregroundColor(.gray)
-                                    .font(.title2)
+                                    .font(.title3)
                             }
                             .padding()
                             .background(Color(.systemBackground))
@@ -87,10 +93,17 @@ struct AppleMockupView: View {
                         .buttonStyle(PlainButtonStyle())
                         
                         // Form Simulasi Order
-                        VStack(alignment: .leading, spacing: 15) {
-                            Text("Apple Developer Order Panel")
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundColor(.primary)
+                        VStack(alignment: .leading, spacing: 14) {
+                            HStack {
+                                Text("Apple Developer Order Panel")
+                                    .font(.system(size: 17, weight: .bold))
+                                    .foregroundColor(.primary)
+                                Spacer()
+                                Button(action: { hideKeyboard() }) {
+                                    Image(systemName: "keyboard.chevron.compact.down")
+                                        .foregroundColor(.secondary)
+                                }
+                            }
                             
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("Service Type / Plan")
@@ -125,8 +138,8 @@ struct AppleMockupView: View {
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                     Text("Instant delivery ⚡️")
-                                        .font(.system(size: 15, weight: .medium))
-                                        .padding(.vertical, 6)
+                                        .font(.system(size: 14, weight: .medium))
+                                        .padding(.vertical, 8)
                                 }
                             }
                             
@@ -144,7 +157,7 @@ struct AppleMockupView: View {
                                     .foregroundColor(.secondary)
                                 TextField("Masukkan 40 digit UDID...", text: $buyerUDID)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .font(.system(.body, design: .monospaced))
+                                    .font(.system(.subheadline, design: .monospaced))
                             }
                             
                             VStack(alignment: .leading, spacing: 6) {
@@ -156,6 +169,7 @@ struct AppleMockupView: View {
                             }
                             
                             Button(action: {
+                                hideKeyboard()
                                 startSimulatedOrder()
                             }) {
                                 HStack {
@@ -165,21 +179,21 @@ struct AppleMockupView: View {
                                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                             .padding(.trailing, 8)
                                         Text("Processing with Apple...")
-                                            .font(.system(size: 16, weight: .bold))
+                                            .font(.system(size: 15, weight: .bold))
                                     } else {
                                         Image(systemName: "cloud.fill")
                                         Text("Submit Order to Server")
-                                            .font(.system(size: 16, weight: .bold))
+                                            .font(.system(size: 15, weight: .bold))
                                     }
                                     Spacer()
                                 }
-                                .padding()
+                                .padding(14)
                                 .background(buyerUDID.count < 10 ? Color.gray : Color.blue)
                                 .foregroundColor(.white)
                                 .cornerRadius(12)
                             }
                             .disabled(isProcessing || buyerUDID.count < 10)
-                            .padding(.top, 5)
+                            .padding(.top, 4)
                         }
                         .padding()
                         .background(Color(.systemBackground))
@@ -223,7 +237,7 @@ struct AppleMockupView: View {
                                             HStack {
                                                 Image(systemName: "arrow.down.doc.fill")
                                                 Text("Download .p12 & .mobileprovision")
-                                                    .font(.system(size: 15, weight: .bold))
+                                                    .font(.system(size: 14, weight: .bold))
                                             }
                                             .frame(maxWidth: .infinity)
                                             .padding(10)
@@ -242,10 +256,10 @@ struct AppleMockupView: View {
                             .padding(.horizontal)
                         }
                     }
-                    .padding(.vertical)
+                    .padding(.vertical, 12)
                 }
             }
-            .navigationTitle("Apple Reseller Console")
+            .navigationBarTitle("Apple Reseller Console", displayMode: .inline)
             .sheet(isPresented: $showSettingsModal) {
                 NavigationView {
                     Form {
@@ -255,7 +269,7 @@ struct AppleMockupView: View {
                             TextField("Nama / Brand Admin", text: $tempAdminName)
                         }
                     }
-                    .navigationTitle("Customize Mockup")
+                    .navigationBarTitle("Customize Mockup", displayMode: .inline)
                     .navigationBarItems(
                         leading: Button("Batal") {
                             showSettingsModal = false
@@ -273,6 +287,10 @@ struct AppleMockupView: View {
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
+    }
+    
+    func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
     
     func startSimulatedOrder() {
