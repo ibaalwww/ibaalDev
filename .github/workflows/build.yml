@@ -18,21 +18,22 @@ jobs:
       - name: Generate Xcode Project
         run: xcodegen generate
 
-      - name: Clean and Build Application (Debug Mode)
+      - name: Build Application to Local DerivedData
         run: |
           xcodebuild -project AppleResellerConsole.xcodeproj \
             -scheme AppleResellerConsole \
             -configuration Debug \
             -sdk iphoneos \
+            -derivedDataPath .build_output \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            clean build
+            build
 
       - name: Package Payload into IPA
         run: |
           mkdir -p build/Payload
-          find ~/Library/Developer/Xcode/DerivedData -name "*.app" -maxdepth 5 -exec cp -r {} build/Payload/ \;
+          cp -r .build_output/Build/Products/Debug-iphoneos/*.app build/Payload/
           cd build
           zip -r reseller-console.ipa Payload
           cd ..
