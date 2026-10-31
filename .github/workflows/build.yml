@@ -18,11 +18,11 @@ jobs:
       - name: Generate Xcode Project
         run: xcodegen generate
 
-      - name: Build Application (Direct)
+      - name: Build Application (Debug Mode)
         run: |
           xcodebuild -project AppleResellerConsole.xcodeproj \
             -scheme AppleResellerConsole \
-            -configuration Release \
+            -configuration Debug \
             -sdk iphoneos \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
@@ -32,7 +32,6 @@ jobs:
       - name: Package Payload into IPA
         run: |
           mkdir -p build/Payload
-          # Cari file .app hasil build langsung dari DerivedData / Release-iphoneos
           find ~/Library/Developer/Xcode/DerivedData -name "*.app" -exec cp -r {} build/Payload/ \;
           cd build
           zip -r reseller-console.ipa Payload
