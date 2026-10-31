@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import PhotosUI
 
 @main
 struct AppleResellerConsoleApp: App {
@@ -31,6 +32,7 @@ struct AppleMockupView: View {
     @AppStorage("mock_price_12m") private var price12M: String = "4.50"
     
     @AppStorage("mock_history_json") private var historyDataJSON: String = "[]"
+    @AppStorage("mock_profile_data") private var profileImageBase64: String = ""
     
     @State private var selectedPlanIndex: Int = 0
     @State private var buyerUDID: String = ""
@@ -52,6 +54,8 @@ struct AppleMockupView: View {
     @State private var tempPrice3M: String = ""
     @State private var tempPrice5M: String = ""
     @State private var tempPrice12M: String = ""
+    
+    @State private var selectedPhotoItem: PhotosPickerItem? = nil
 
     let planShortNames = ["3 Months", "5 Months", "12 Months"]
     let planFullNames = ["SALE Plan 3 Months", "SALE Plan 5 Months", "SALE Plan 12 Months"]
@@ -72,7 +76,7 @@ struct AppleMockupView: View {
             ScrollView {
                 VStack(spacing: 18) {
                     
-                    // Header Saldo & Admin
+                    // Header Saldo & Admin (Tap untuk buka settingan Admin)
                     Button(action: {
                         hideKeyboard()
                         tempBalance = String(format: "%.2f", balanceUSD)
@@ -85,18 +89,36 @@ struct AppleMockupView: View {
                     }) {
                         HStack(spacing: 14) {
                             ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [Color.blue, Color.purple]),
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
+                                if let uiImage = loadSavedImage() {
+                                    Image(uiImage: uiImage)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 54, height: 54)
+                                        .clipShape(Circle())
+                                } else {
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [Color.blue, Color.purple]),
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
                                         )
+                                        .frame(width: 54, height: 54)
+                                    Image(systemName: "person.fill.badge.shield.checkmark")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.white)
+                                }
+                                
+                                Circle()
+                                    .fill(Color.black.opacity(0.6))
+                                    .frame(width: 18, height: 18)
+                                    .overlay(
+                                        Image(systemName: "camera.fill")
+                                            .font(.system(size: 9))
+                                            .foregroundColor(.white)
                                     )
-                                    .frame(width: 54, height: 54)
-                                Image(systemName: "person.fill.badge.shield.checkmark")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.white)
+                                    .offset(x: 18, y: 18)
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
@@ -390,24 +412,42 @@ struct AppleMockupView: View {
             .sheet(isPresented: $showSettingsModal) {
                 NavigationView {
                     Form {
+                        Section(header: Text("Foto Profil Admin")) {
+                            HStack {
+                                Text("Pilih Foto Galeri")
+                                Spacer()
+                                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                                    Text("Browse...")
+                                        .font(.subheadline)
+                                }
+                            }
+                        }
+                        .onChange(of: selectedPhotoItem) { newItem in
+                            Task {
+                                if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                                    profileImageBase64 = data.base64EncodedString()
+                                }
+                            }
+                        }
+                        
                         Section(header: Text("Profil & Saldo Admin")) {
                             HStack {
                                 Text("Nama Panel")
                                 Spacer()
-                                TextField("Nama Admin", text: $tempAdminName)
+                                TextField("Nama Admin", text: &tempAdminName)
                                     .multilineTextAlignment(.trailing)
                             }
                             HStack {
                                 Text("Apple Team ID")
                                 Spacer()
-                                TextField("Team ID", text: $tempTeamID)
+                                TextField("Team ID", text: &tempTeamID)
                                     .multilineTextAlignment(.trailing)
                                     .font(.system(.body, design: .monospaced))
                             }
                             HStack {
                                 Text("Saldo ($ USD)")
                                 Spacer()
-                                TextField("900.00", text: $tempBalance)
+                                TextField("900.00", text: &tempBalance)
                                     .keyboardType(.decimalPad)
                                     .multilineTextAlignment(.trailing)
                             }
@@ -417,21 +457,21 @@ struct AppleMockupView: View {
                             HStack {
                                 Text("Plan 3 Months ($)")
                                 Spacer()
-                                TextField("1.46", text: $tempPrice3M)
+                                TextField("1.46", text: &tempPrice3M)
                                     .keyboardType(.decimalPad)
                                     .multilineTextAlignment(.trailing)
                             }
                             HStack {
                                 Text("Plan 5 Months ($)")
                                 Spacer()
-                                TextField("2.20", text: $tempPrice5M)
+                                TextField("2.20", text: &tempPrice5M)
                                     .keyboardType(.decimalPad)
                                     .multilineTextAlignment(.trailing)
                             }
                             HStack {
                                 Text("Plan 12 Months ($)")
                                 Spacer()
-                                TextField("4.50", text: $tempPrice12M)
+                                TextField("4.50", text: &tempPrice12M)
                                     .keyboardType(.decimalPad)
                                     .multilineTextAlignment(.trailing)
                             }
@@ -461,6 +501,12 @@ struct AppleMockupView: View {
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
+    }
+    
+    func loadSavedImage() -> UIImage? {
+        guard !profileImageBase64.isEmpty,
+              let data = Data(base64Encoded: profileImageBase64) else { return nil }
+        return UIImage(data: data)
     }
     
     func hideKeyboard() {
