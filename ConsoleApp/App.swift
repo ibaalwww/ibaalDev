@@ -11,7 +11,6 @@ struct AppleResellerConsoleApp: App {
     }
 }
 
-// Struktur Data untuk Riwayat Order
 struct OrderHistoryItem: Identifiable, Codable {
     let id: String
     let dateStr: String
@@ -28,12 +27,10 @@ struct AppleMockupView: View {
     @AppStorage("mock_admin_name") private var adminName: String = "iBaaL Enterprise Partner"
     @AppStorage("mock_team_id") private var teamID: String = "9K48LM2P1Q"
     
-    // Harga modal disimpan di settingan Admin
     @AppStorage("mock_price_3m") private var price3M: String = "1.46"
     @AppStorage("mock_price_5m") private var price5M: String = "2.20"
     @AppStorage("mock_price_12m") private var price12M: String = "4.50"
     
-    // Menyimpan riwayat order dalam bentuk JSON di AppStorage
     @AppStorage("mock_history_json") private var historyDataJSON: String = "[]"
     
     @State private var selectedPlanIndex: Int = 0
@@ -45,7 +42,6 @@ struct AppleMockupView: View {
     @State private var logMessages: [String] = ["System initialized. Ready to dispatch..."]
     @State private var isCompleted: Bool = false
     
-    // Metadata Hasil Generate Terakhir
     @State private var lastSerialNumber: String = ""
     @State private var lastExpiryDate: String = ""
     @State private var lastOrderId: String = ""
@@ -58,7 +54,6 @@ struct AppleMockupView: View {
     @State private var tempPrice5M: String = ""
     @State private var tempPrice12M: String = ""
     
-    // State untuk Picker Foto Profil
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
     @State private var profileImageData: Data? = nil
 
@@ -67,10 +62,11 @@ struct AppleMockupView: View {
     let planMonthsCount = [3, 5, 12]
 
     var currentPlanPriceDouble: Double {
-        let str = switch selectedPlanIndex {
-        case 0: price3M
-        case 1: price5M
-        default: price12M
+        let str: String
+        switch selectedPlanIndex {
+        case 0: str = price3M
+        case 1: str = price5M
+        default: str = price12M
         }
         return Double(str) ?? 1.46
     }
@@ -80,7 +76,7 @@ struct AppleMockupView: View {
             ScrollView {
                 VStack(spacing: 18) {
                     
-                    // Header Saldo & Admin (Tap untuk buka settingan Admin & Ganti Foto)
+                    // Header Saldo & Admin
                     Button(action: {
                         hideKeyboard()
                         tempBalance = String(format: "%.2f", balanceUSD)
@@ -93,7 +89,7 @@ struct AppleMockupView: View {
                     }) {
                         HStack(spacing: 14) {
                             ZStack {
-                                if let profileImageData, let uiImage = UIImage(data: profileImageData) {
+                                if let data = profileImageData, let uiImage = UIImage(data: data) {
                                     Image(uiImage: uiImage)
                                         .resizable()
                                         .scaledToFill()
@@ -114,7 +110,6 @@ struct AppleMockupView: View {
                                         .foregroundColor(.white)
                                 }
                                 
-                                // Badge edit kecil di pojok foto
                                 Circle()
                                     .fill(Color.black.opacity(0.6))
                                     .frame(width: 18, height: 18)
@@ -175,7 +170,6 @@ struct AppleMockupView: View {
                             .pickerStyle(SegmentedPickerStyle())
                         }
                         
-                        // Harga Modal Otomatis
                         HStack(spacing: 15) {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("Purchase Price (USD)")
@@ -286,7 +280,6 @@ struct AppleMockupView: View {
                             
                             Divider()
                             
-                            // Kotak Terminal Hitam
                             VStack(alignment: .leading, spacing: 4) {
                                 ForEach(logMessages, id: \.self) { msg in
                                     Text(msg)
@@ -299,7 +292,6 @@ struct AppleMockupView: View {
                             .background(Color.black)
                             .cornerRadius(8)
                             
-                            // Cert Metadata Detail (Muncul Pas Sukses)
                             if isCompleted {
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text("📋 Cert Metadata Result")
@@ -355,7 +347,7 @@ struct AppleMockupView: View {
                         .padding(.horizontal)
                     }
                     
-                    // Riwayat Order Terakhir
+                    // Riwayat Order
                     let historyList = loadHistory()
                     if !historyList.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
@@ -533,7 +525,6 @@ struct AppleMockupView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
                     let t4 = currentTimeString()
                     
-                    // Potong Saldo Otomatis
                     let cost = currentPlanPriceDouble
                     if balanceUSD >= cost {
                         balanceUSD -= cost
@@ -541,14 +532,12 @@ struct AppleMockupView: View {
                         balanceUSD = 0.0
                     }
                     
-                    // Generate Metadata Hasil
-                    lastOrderId = "#ORD-\(Int.random(in: 10000..~99999))"
+                    lastOrderId = "#ORD-\(Int.random(in: 10000...99999))"
                     lastSerialNumber = generateHexSerial()
                     lastExpiryDate = calculateExpiryDate(months: planMonthsCount[selectedPlanIndex])
                     
                     logMessages.append("[\(t4)] ✅ Success! Cert Bundle compiled.")
                     
-                    // Simpan ke Riwayat
                     saveHistory(item: OrderHistoryItem(
                         id: UUID().uuidString,
                         dateStr: t4,
