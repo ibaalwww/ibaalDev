@@ -1,0 +1,45 @@
+name: Build Console IPA
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Build Application Archive
+        run: |
+          xcodebuild -project AppleResellerConsole.xcodeproj \
+            -scheme AppleResellerConsole \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/AppleResellerConsole.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            archive
+
+      - name: Package Payload into IPA
+        run: |
+          mkdir -p build/Payload
+          cp -r build/AppleResellerConsole.xcarchive/Products/Applications/*.app build/Payload/
+          cd build
+          zip -r reseller-console.ipa Payload
+          cd ..
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: reseller-console-IPA
+          path: build/reseller-console.ipa
