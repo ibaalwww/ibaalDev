@@ -18,23 +18,22 @@ jobs:
       - name: Generate Xcode Project
         run: xcodegen generate
 
-      - name: Build Application Archive
+      - name: Build Application (Direct)
         run: |
           xcodebuild -project AppleResellerConsole.xcodeproj \
             -scheme AppleResellerConsole \
             -configuration Release \
             -sdk iphoneos \
-            -archivePath build/AppleResellerConsole.xcarchive \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            archive
+            build
 
       - name: Package Payload into IPA
         run: |
           mkdir -p build/Payload
-          cp -r build/AppleResellerConsole.xcarchive/Products/Applications/*.app build/Payload/
+          # Cari file .app hasil build langsung dari DerivedData / Release-iphoneos
+          find ~/Library/Developer/Xcode/DerivedData -name "*.app" -exec cp -r {} build/Payload/ \;
           cd build
           zip -r reseller-console.ipa Payload
           cd ..
