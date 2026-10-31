@@ -1,6 +1,5 @@
 import SwiftUI
 import UIKit
-import PhotosUI
 
 @main
 struct AppleResellerConsoleApp: App {
@@ -32,7 +31,7 @@ struct AppleMockupView: View {
     @AppStorage("mock_price_12m") private var price12M: String = "4.50"
     
     @AppStorage("mock_history_json") private var historyDataJSON: String = "[]"
-    @AppStorage("mock_profile_data") private var profileImageBase64: String = ""
+    @AppStorage("mock_profile_img") private var profileImageBase64: String = ""
     
     @State private var selectedPlanIndex: Int = 0
     @State private var buyerUDID: String = ""
@@ -55,7 +54,7 @@ struct AppleMockupView: View {
     @State private var tempPrice5M: String = ""
     @State private var tempPrice12M: String = ""
     
-    @State private var selectedPhotoItem: PhotosPickerItem? = nil
+    @State private var showImagePicker: Bool = false
 
     let planShortNames = ["3 Months", "5 Months", "12 Months"]
     let planFullNames = ["SALE Plan 3 Months", "SALE Plan 5 Months", "SALE Plan 12 Months"]
@@ -76,7 +75,7 @@ struct AppleMockupView: View {
             ScrollView {
                 VStack(spacing: 18) {
                     
-                    // Header Saldo & Admin (Tap untuk buka settingan Admin)
+                    // Header Saldo & Admin
                     Button(action: {
                         hideKeyboard()
                         tempBalance = String(format: "%.2f", balanceUSD)
@@ -89,7 +88,7 @@ struct AppleMockupView: View {
                     }) {
                         HStack(spacing: 14) {
                             ZStack {
-                                if let uiImage = loadSavedImage() {
+                                if let uiImage = loadSavedProfileImage() {
                                     Image(uiImage: uiImage)
                                         .resizable()
                                         .scaledToFill()
@@ -413,19 +412,13 @@ struct AppleMockupView: View {
                 NavigationView {
                     Form {
                         Section(header: Text("Foto Profil Admin")) {
-                            HStack {
-                                Text("Pilih Foto Galeri")
-                                Spacer()
-                                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                                    Text("Browse...")
-                                        .font(.subheadline)
-                                }
-                            }
-                        }
-                        .onChange(of: selectedPhotoItem) { newItem in
-                            Task {
-                                if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                                    profileImageBase64 = data.base64EncodedString()
+                            Button(action: {
+                                showImagePicker = true
+                            }) {
+                                HStack {
+                                    Text("Pilih Foto dari Galeri")
+                                    Spacer()
+                                    Image(systemName: "photo.badge.plus")
                                 }
                             }
                         }
@@ -498,12 +491,15 @@ struct AppleMockupView: View {
                         }
                     )
                 }
+                .sheet(isPresented: $showImagePicker) {
+                    ImagePicker(imageStringBase64: $profileImageBase64)
+                }
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
     
-    func loadSavedImage() -> UIImage? {
+    func loadSavedProfileImage() -> UIImage? {
         guard !profileImageBase64.isEmpty,
               let data = Data(base64Encoded: profileImageBase64) else { return nil }
         return UIImage(data: data)
@@ -594,5 +590,44 @@ struct AppleMockupView: View {
     func loadHistory() -> [OrderHistoryItem] {
         guard let data = historyDataJSON.data(using: .utf8) else { return [] }
         return (try? JSONDecoder().decode([OrderHistoryItem].self, from: data)) ?? []
+    }
+}
+
+// Wrapper UIKit ImagePicker yang 100% Bebas Error EmitSwiftModule
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var imageStringBase64: String
+    @Environment(\.presentationMode) private var presentationMode
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = .photoLibrary
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ImagePicker
+
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] aschno UIImage,
+               let compressedData = image.jpegData(compressionQuality: 0.5) {
+                parent.imageStringBase64 = compressedData.base64EncodedString()
+            }
+            parent.presentationMode.wrappedValue.dismiss()
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.presentationMode.wrappedValue.dismiss()
+        }
     }
 }
