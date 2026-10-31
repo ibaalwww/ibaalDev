@@ -14,7 +14,7 @@ targets:
       path: ConsoleApp/Info.plist
     settings:
       base:
-        PRODUCT_NAME: "Reseller Console"
+        PRODUCT_NAME: "ResellerConsole"
         PRODUCT_BUNDLE_IDENTIFIER: "com.ibaal.resellerconsole"
         TARGETED_DEVICE_FAMILY: "1"
         SWIFT_VERSION: "5.0"
