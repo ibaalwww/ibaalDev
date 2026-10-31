@@ -585,6 +585,8 @@ struct AppleMockupView: View {
         }
     }
     
+    Tampilkan verifikasi bahwa file tersimpan: pastikan isi file `App.swift` benar-benar tertimpa dengan kode di atas tanpa ada karakter asing yang tertinggal.
+    
     func loadHistory() -> [OrderHistoryItem] {
         guard let data = historyDataJSON.data(using: .utf8) else { return [] }
         return (try? JSONDecoder().decode([OrderHistoryItem].self, from: data)) ?? []
