@@ -13,7 +13,7 @@ struct AppleMockupView: View {
     @AppStorage("mock_balance") private var balanceUSD: String = "450.50"
     @AppStorage("mock_admin_name") private var adminName: String = "iBaaL Enterprise Partner"
     
-    @State private var selectedPlan: PlanOption = .threeMonths
+    @State private var selectedPlanIndex: Int = 0
     @State private var customPriceUSD: String = "1.46"
     @State private var buyerUDID: String = ""
     @State private var buyerName: String = ""
@@ -27,23 +27,11 @@ struct AppleMockupView: View {
     @State private var tempBalance: String = ""
     @State private var tempAdminName: String = ""
 
-    enum PlanOption: String, CaseIterable, Identifiable {
-        case threeMonths = "SALE Plan 3 Month"
-        case fiveMonths = "SALE Plan 5 Month"
-        case twelveMonths = "SALE Plan 12 Month"
-        var id: String { self.rawValue }
-        
-        var defaultUSD: String {
-            switch self {
-            case .threeMonths: return "1.46"
-            case .fiveMonths: return "2.20"
-            case .twelveMonths: return "4.50"
-            }
-        }
-    }
+    let planNames = ["SALE Plan 3 Month", "SALE Plan 5 Month", "SALE Plan 12 Month"]
+    let planPrices = ["1.46", "2.20", "4.50"]
 
     var body: some View {
-        NavigationStack {
+        NavigationView {
             ZStack {
                 Color(.systemGroupedBackground).ignoresSafeArea()
                 
@@ -59,10 +47,16 @@ struct AppleMockupView: View {
                             HStack(spacing: 15) {
                                 ZStack {
                                     Circle()
-                                        .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                        .fill(
+                                            LinearGradient(
+                                                gradient: Gradient(colors: [Color.blue, Color.purple]),
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
                                         .frame(width: 55, height: 55)
                                     Image(systemName: "person.fill.badge.shield.checkmark")
-                                        .font(.system(size: 24))
+                                        .font(.system(size: 22))
                                         .foregroundColor(.white)
                                 }
                                 
@@ -70,12 +64,11 @@ struct AppleMockupView: View {
                                     Text(adminName)
                                         .font(.headline)
                                         .foregroundColor(.primary)
-                                    Text("API Status: 🟢 Connected (Apple API)")
+                                    Text("API Status: Connected (Apple API)")
                                         .font(.caption)
                                         .foregroundColor(.green)
                                     Text("Balance: $\(balanceUSD)")
-                                        .font(.subheadline)
-                                        .fontWeight(.bold)
+                                        .font(.system(size: 15, weight: .bold))
                                         .foregroundColor(.blue)
                                 }
                                 
@@ -91,64 +84,75 @@ struct AppleMockupView: View {
                             .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
                         }
                         .padding(.horizontal)
+                        .buttonStyle(PlainButtonStyle())
                         
                         // Form Simulasi Order
                         VStack(alignment: .leading, spacing: 15) {
                             Text("Apple Developer Order Panel")
-                                .font(.title3)
-                                .fontWeight(.bold)
+                                .font(.system(size: 18, weight: .bold))
                                 .foregroundColor(.primary)
                             
                             VStack(alignment: .leading, spacing: 6) {
-                                Text("Service Type / Plan").font(.caption).foregroundColor(.secondary)
-                                Picker("Plan", selection: $selectedPlan) {
-                                    ForEach(PlanOption.allCases) { plan in
-                                        Text(plan.rawValue).tag(plan)
+                                Text("Service Type / Plan")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Picker("Plan", selection: $selectedPlanIndex) {
+                                    ForEach(0..<planNames.count, id: \.self) { index in
+                                        Text(planNames[index]).tag(index)
                                     }
                                 }
-                                .pickerStyle(.segmented)
-                                .onChange(of: selectedPlan) { newValue in
-                                    customPriceUSD = newValue.defaultUSD
+                                .pickerStyle(SegmentedPickerStyle())
+                                .onChange(of: selectedPlanIndex) { newIndex in
+                                    customPriceUSD = planPrices[newIndex]
                                 }
                             }
                             
                             HStack(spacing: 15) {
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Text("Purchase Price (USD)").font(.caption).foregroundColor(.secondary)
+                                    Text("Purchase Price (USD)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
                                     HStack {
                                         Text("$").foregroundColor(.secondary)
                                         TextField("1.46", text: $customPriceUSD)
                                             .keyboardType(.decimalPad)
-                                            .textFieldStyle(.roundedBorder)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
                                     }
                                 }
                                 
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Text("Estimated Delivery").font(.caption).foregroundColor(.secondary)
+                                    Text("Estimated Delivery")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
                                     Text("Instant delivery ⚡️")
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
+                                        .font(.system(size: 15, weight: .medium))
                                         .padding(.vertical, 6)
                                 }
                             }
                             
                             VStack(alignment: .leading, spacing: 6) {
-                                Text("Buyer Name / Nickname").font(.caption).foregroundColor(.secondary)
+                                Text("Buyer Name / Nickname")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                                 TextField("Contoh: Rkii / Buyer Toko", text: $buyerName)
-                                    .textFieldStyle(.roundedBorder)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
                             }
                             
                             VStack(alignment: .leading, spacing: 6) {
-                                Text("Device UDID (40 Characters)").font(.caption).foregroundColor(.secondary)
+                                Text("Device UDID (40 Characters)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                                 TextField("Masukkan 40 digit UDID...", text: $buyerUDID)
-                                    .textFieldStyle(.roundedBorder)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .font(.system(.body, design: .monospaced))
                             }
                             
                             VStack(alignment: .leading, spacing: 6) {
-                                Text("Certificate Password").font(.caption).foregroundColor(.secondary)
+                                Text("Certificate Password")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                                 TextField("ibaalcert", text: $certPassword)
-                                    .textFieldStyle(.roundedBorder)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
                             }
                             
                             Button(action: {
@@ -158,19 +162,20 @@ struct AppleMockupView: View {
                                     Spacer()
                                     if isProcessing {
                                         ProgressView()
-                                            .tint(.white)
+                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                             .padding(.trailing, 8)
                                         Text("Processing with Apple...")
+                                            .font(.system(size: 16, weight: .bold))
                                     } else {
                                         Image(systemName: "cloud.fill")
                                         Text("Submit Order to Server")
+                                            .font(.system(size: 16, weight: .bold))
                                     }
                                     Spacer()
                                 }
                                 .padding()
                                 .background(buyerUDID.count < 10 ? Color.gray : Color.blue)
                                 .foregroundColor(.white)
-                                .fontWeight(.bold)
                                 .cornerRadius(12)
                             }
                             .disabled(isProcessing || buyerUDID.count < 10)
@@ -211,19 +216,20 @@ struct AppleMockupView: View {
                                                 .foregroundColor(.green)
                                             Spacer()
                                             Text("Cost: $\(customPriceUSD)")
-                                                .font(.caption)
-                                                .bold()
+                                                .font(.system(size: 12, weight: .bold))
                                         }
                                         
                                         Button(action: {}) {
-                                            Label("Download .p12 & .mobileprovision", systemImage: "arrow.down.doc.fill")
-                                                .frame(maxWidth: .infinity)
-                                                .padding(10)
-                                                .background(Color.green)
-                                                .foregroundColor(.white)
-                                                .cornerRadius(8)
-                                                .font(.subheadline)
-                                                .bold()
+                                            HStack {
+                                                Image(systemName: "arrow.down.doc.fill")
+                                                Text("Download .p12 & .mobileprovision")
+                                                    .font(.system(size: 15, weight: .bold))
+                                            }
+                                            .frame(maxWidth: .infinity)
+                                            .padding(10)
+                                            .background(Color.green)
+                                            .foregroundColor(.white)
+                                            .cornerRadius(8)
                                         }
                                     }
                                     .padding(.top, 6)
@@ -241,7 +247,7 @@ struct AppleMockupView: View {
             }
             .navigationTitle("Apple Reseller Console")
             .sheet(isPresented: $showSettingsModal) {
-                NavigationStack {
+                NavigationView {
                     Form {
                         Section(header: Text("Custom Panel Display (Untuk Screenshot)")) {
                             TextField("Saldo USD (Contoh: 450.50)", text: $tempBalance)
@@ -251,16 +257,22 @@ struct AppleMockupView: View {
                     }
                     .navigationTitle("Customize Mockup")
                     .navigationBarItems(
-                        leading: Button("Batal") { showSettingsModal = false },
-                        trailing: Button("Simpan") {
+                        leading: Button("Batal") {
+                            showSettingsModal = false
+                        },
+                        trailing: Button(action: {
                             balanceUSD = tempBalance
                             adminName = tempAdminName
                             showSettingsModal = false
-                        }.bold()
+                        }) {
+                            Text("Simpan")
+                                .font(.system(size: 16, weight: .bold))
+                        }
                     )
                 }
             }
         }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     func startSimulatedOrder() {
@@ -275,7 +287,8 @@ struct AppleMockupView: View {
                 statusMessage = "[2.5s] Generating CSR & Signing with Enterprise Key..."
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) {
-                    statusMessage = "[3.5s] ✅ Success! Certificate compiled & ready for \(buyerName.isEmpty ? "Customer" : buyerName)."
+                    let targetBuyer = buyerName.isEmpty ? "Customer" : buyerName
+                    statusMessage = "[3.5s] ✅ Success! Certificate compiled & ready for \(targetBuyer)."
                     isProcessing = false
                     isCompleted = true
                 }
