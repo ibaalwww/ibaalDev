@@ -1,6 +1,5 @@
 import SwiftUI
 import UIKit
-import PhotosUI
 
 @main
 struct AppleResellerConsoleApp: App {
@@ -53,9 +52,6 @@ struct AppleMockupView: View {
     @State private var tempPrice3M: String = ""
     @State private var tempPrice5M: String = ""
     @State private var tempPrice12M: String = ""
-    
-    @State private var selectedPhotoItem: PhotosPickerItem? = nil
-    @State private var profileImageData: Data? = nil
 
     let planShortNames = ["3 Months", "5 Months", "12 Months"]
     let planFullNames = ["SALE Plan 3 Months", "SALE Plan 5 Months", "SALE Plan 12 Months"]
@@ -89,36 +85,18 @@ struct AppleMockupView: View {
                     }) {
                         HStack(spacing: 14) {
                             ZStack {
-                                if let data = profileImageData, let uiImage = UIImage(data: data) {
-                                    Image(uiImage: uiImage)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 54, height: 54)
-                                        .clipShape(Circle())
-                                } else {
-                                    Circle()
-                                        .fill(
-                                            LinearGradient(
-                                                gradient: Gradient(colors: [Color.blue, Color.purple]),
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            )
-                                        )
-                                        .frame(width: 54, height: 54)
-                                    Image(systemName: "person.fill.badge.shield.checkmark")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(.white)
-                                }
-                                
                                 Circle()
-                                    .fill(Color.black.opacity(0.6))
-                                    .frame(width: 18, height: 18)
-                                    .overlay(
-                                        Image(systemName: "camera.fill")
-                                            .font(.system(size: 9))
-                                            .foregroundColor(.white)
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [Color.blue, Color.purple]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
                                     )
-                                    .offset(x: 18, y: 18)
+                                    .frame(width: 54, height: 54)
+                                Image(systemName: "person.fill.badge.shield.checkmark")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.white)
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
@@ -412,24 +390,6 @@ struct AppleMockupView: View {
             .sheet(isPresented: $showSettingsModal) {
                 NavigationView {
                     Form {
-                        Section(header: Text("Foto Profil Admin")) {
-                            HStack {
-                                Text("Ganti Foto")
-                                Spacer()
-                                PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                                    Text("Pilih dari Galeri")
-                                        .font(.subheadline)
-                                }
-                            }
-                        }
-                        .onChange(of: selectedPhotoItem) { newItem in
-                            Task {
-                                if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                                    profileImageData = data
-                                }
-                            }
-                        }
-                        
                         Section(header: Text("Profil & Saldo Admin")) {
                             HStack {
                                 Text("Nama Panel")
