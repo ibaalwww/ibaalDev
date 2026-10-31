@@ -5,6 +5,8 @@
     <key>CFBundleIdentifier</key>
     <string>com.ibaal.resellerconsole</string>
     <key>CFBundleName</key>
+    <string>ResellerConsole</string>
+    <key>CFBundleDisplayName</key>
     <string>Reseller Console</string>
     <key>CFBundleVersion</key>
     <string>1.0</string>
@@ -12,5 +14,7 @@
     <string>1.0</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
+    <key>UILaunchScreen</key>
+    <dict/>
 </dict>
 </plist>
